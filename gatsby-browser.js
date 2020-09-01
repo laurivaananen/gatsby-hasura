@@ -1,31 +1,13 @@
 import React from "react"
 import { Auth0Provider } from "@auth0/auth0-react"
+import { navigate } from "gatsby"
+import client from "./src/utils/apolloClient"
+import { ApolloProvider } from "@apollo/client"
 
-// class SessionCheck extends React.Component {
-//   constructor(props) {
-//     console.log("SessionCheck PAGE")
-//     super(props)
-//     this.state = {
-//       loading: true,
-//     }
-//   }
-
-//   handleCheckSession = () => {
-//     this.setState({ loading: false })
-//   }
-
-//   componentDidMount() {
-//     silentAuth(this.handleCheckSession)
-//   }
-
-//   render() {
-//     return (
-//       this.state.loading === false && (
-//         <React.Fragment>{this.props.children}</React.Fragment>
-//       )
-//     )
-//   }
-// }
+const onRedirectCallback = appState => {
+  // Use Gatsby's navigate method to replace the url
+  navigate(appState?.returnTo || "/", { replace: true })
+}
 
 export const wrapRootElement = ({ element }) => {
   return (
@@ -33,10 +15,11 @@ export const wrapRootElement = ({ element }) => {
       domain="gatsby.eu.auth0.com"
       clientId="OWyOKW8B4IJyr1O0jABmFppWdDcLeO3F"
       redirectUri="http://localhost:8000"
-      audience="https://gatsby.eu.auth0.com/api/v2/"
+      audience="https://moved-ferret-33.hasura.app/v1/graphql"
       scope="read:current_user update:current_user_metadata"
+      onRedirectCallback={onRedirectCallback}
     >
-      {element}
+      <ApolloProvider client={client}>{element}</ApolloProvider>
     </Auth0Provider>
   )
 }

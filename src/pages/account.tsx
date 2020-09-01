@@ -5,47 +5,11 @@ import Account from "../components/account"
 import { Router } from "@reach/router"
 import { Link } from "gatsby"
 
-const LogoutButton = () => {
-  const { logout } = useAuth0()
-
-  return (
-    <button onClick={() => logout({ returnTo: window.location.origin })}>
-      Log Out
-    </button>
-  )
-}
-
-const LoginButton = () => {
-  const { loginWithRedirect } = useAuth0()
-
-  return <button onClick={() => loginWithRedirect()}>Log In</button>
-}
-
-const Profile = ({ user, isAuthenticated }) => {
-  return (
-    isAuthenticated && (
-      <div>
-        <img src={user.picture} alt={user.name} />
-        <h2>{user.name}</h2>
-        <p>{user.email}</p>
-      </div>
-    )
-  )
-}
-
 const AccountPage = () => {
   const { user, isAuthenticated, isLoading } = useAuth0()
   return (
     <Layout>
       <h1>Gatsby + Hasura example</h1>
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : isAuthenticated ? (
-        <LogoutButton />
-      ) : (
-        <LoginButton />
-      )}
-      <Profile user={user} isAuthenticated={isAuthenticated} />
       <Link to="/account/user">Account</Link>
       <Router>
         <Account path="/account/user" user={user} />

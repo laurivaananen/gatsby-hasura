@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from "react"
 import Layout from "./layout"
-import { useAuth0 } from "@auth0/auth0-react"
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react"
 
 const Account: React.FC<any> = () => {
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0()
@@ -15,6 +15,7 @@ const Account: React.FC<any> = () => {
 
   useEffect(() => {
     const getUserMetadata = async () => {
+      console.log(user)
       const domain = "gatsby.eu.auth0.com"
 
       try {
@@ -31,9 +32,11 @@ const Account: React.FC<any> = () => {
           },
         })
 
-        const { user_metadata } = await metadataResponse.json()
+        const res = await metadataResponse.json()
+        console.log(res)
+        console.log("res")
 
-        setUserMetadata(user_metadata)
+        setUserMetadata(res.user_metadata)
       } catch (e) {
         console.log(e.message)
       }
@@ -46,7 +49,7 @@ const Account: React.FC<any> = () => {
     isAuthenticated && (
       <>
         <img src={user.picture} alt={user.name} />
-        <h2>{user.name}</h2>
+        <h2>{user.nickname}</h2>
         <p>{user.email}</p>
         <h3>User Metadata</h3>
         {userMetadata ? (
@@ -59,4 +62,4 @@ const Account: React.FC<any> = () => {
   )
 }
 
-export default Account
+export default withAuthenticationRequired(Account)
