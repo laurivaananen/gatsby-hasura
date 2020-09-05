@@ -1,19 +1,8 @@
 const path = require(`path`)
 
-exports.onCreatePage = async ({ page, actions }) => {
-  const { createPage } = actions
-
-  // page.matchPath is a special key that's used for matching pages
-  // only on the client.
-  if (page.path.match(/^\/account/)) {
-    page.matchPath = "/account/*"
-
-    // Update the page.
-    createPage(page)
-  }
-}
-
 exports.createPages = async ({ graphql, actions }) => {
+  console.log(process.env.GATSBY_GRAPHQL_URL)
+  console.log("process.env.GATSBY_GRAPHQL_URL")
   const { createPage } = actions
   // **Note:** The graphql function call returns a Promise
   // see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise for more info
@@ -26,6 +15,10 @@ exports.createPages = async ({ graphql, actions }) => {
           title
           updated_at
           created_at
+          user {
+            id
+            username
+          }
         }
       }
     }

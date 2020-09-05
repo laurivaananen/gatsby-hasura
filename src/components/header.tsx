@@ -20,15 +20,15 @@ export const LoginButton = () => {
 const Header = () => {
   const { user, isAuthenticated, isLoading } = useAuth0()
   return (
-    <header>
-      <div>
+    <header className="bg-blue-600">
+      <div className="flex">
         <Link to="/">Home</Link> <Link to="/mods">Mods</Link>{" "}
-        <Link to="/users">Users</Link> <Link to="/account">Account</Link>{" "}
+        <Link to="/users">Users</Link>
         {isLoading ? (
           <p>Loading...</p>
         ) : isAuthenticated ? (
           <>
-            <Link to="/account/user">{user.nickname}</Link> <LogoutButton />
+            <Link to="/account">{user.nickname}</Link> <LogoutButton />
           </>
         ) : (
           <LoginButton />

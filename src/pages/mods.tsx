@@ -8,6 +8,12 @@ export interface IMod {
   description: string
   created_at: string
   updated_at: string
+  user?: IUser
+}
+
+export interface IUser {
+  username: string
+  id: string
 }
 
 export interface ModPayload {
@@ -17,17 +23,19 @@ export interface ModPayload {
 }
 
 const Mods = ({ data }: PageProps<ModPayload>) => {
+  console.log(data)
   return (
     <Layout>
       <div>
         <h1>Mods</h1>
+        <Link to="/mods/new">Create a new Mod</Link>
         <ul>
           {data.hasura.mod.map((mod: IMod) => (
             <li>
               <Link to={`/mods/${mod.id}`}>
                 <div>
                   <h3>{mod.title}</h3>
-                  <p>{mod.description}</p>
+                  <p>{mod.user?.username}</p>
                 </div>
               </Link>
             </li>
@@ -49,6 +57,10 @@ export const query = graphql`
         title
         updated_at
         created_at
+        user {
+          username
+          id
+        }
       }
     }
   }

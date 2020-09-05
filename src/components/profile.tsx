@@ -6,10 +6,9 @@
  */
 
 import React, { useState, useEffect } from "react"
-import Layout from "./layout"
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react"
 
-const Account: React.FC<any> = () => {
+const Profile: React.FC<any> = () => {
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0()
   const [userMetadata, setUserMetadata] = useState(null)
 
@@ -48,6 +47,7 @@ const Account: React.FC<any> = () => {
   return (
     isAuthenticated && (
       <>
+        <p>This is Profile</p>
         <img src={user.picture} alt={user.name} />
         <h2>{user.nickname}</h2>
         <p>{user.email}</p>
@@ -62,4 +62,4 @@ const Account: React.FC<any> = () => {
   )
 }
 
-export default withAuthenticationRequired(Account)
+export default Profile

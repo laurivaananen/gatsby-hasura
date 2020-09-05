@@ -1,21 +1,19 @@
-import React from "react"
-import { useAuth0 } from "@auth0/auth0-react"
+import React, { useEffect } from "react"
+import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react"
 import Layout from "../components/layout"
-import Account from "../components/account"
+import Profile from "../components/profile"
+import Account from "../components/Account"
 import { Router } from "@reach/router"
-import { Link } from "gatsby"
 
 const AccountPage = () => {
-  const { user, isAuthenticated, isLoading } = useAuth0()
   return (
     <Layout>
-      <h1>Gatsby + Hasura example</h1>
-      <Link to="/account/user">Account</Link>
-      <Router>
-        <Account path="/account/user" user={user} />
+      <Router basepath="/account">
+        <Profile path="/profile" />
+        <Account path="/" />
       </Router>
     </Layout>
   )
 }
 
-export default AccountPage
+export default withAuthenticationRequired(AccountPage)
