@@ -2,6 +2,7 @@ import React from "react"
 import { Auth0Provider } from "@auth0/auth0-react"
 import { navigate } from "gatsby"
 import client from "./src/utils/apolloClient"
+import ApolloWrapper from "./src/utils/apolloWrapper"
 import { ApolloProvider } from "@apollo/client"
 
 const onRedirectCallback = appState => {
@@ -19,7 +20,8 @@ export const wrapRootElement = ({ element }) => {
       scope="read:current_user update:current_user_metadata"
       onRedirectCallback={onRedirectCallback}
     >
-      <ApolloProvider client={client}>{element}</ApolloProvider>
+      <ApolloWrapper>{element}</ApolloWrapper>
+      {/* <ApolloProvider client={client}>{element}</ApolloProvider> */}
     </Auth0Provider>
   )
 }

@@ -21,8 +21,13 @@ const Header = () => {
   const { user, isAuthenticated, isLoading } = useAuth0()
   return (
     <header className="bg-blue-600">
-      <div className="flex">
-        <Link to="/">Home</Link> <Link to="/mods">Mods</Link>{" "}
+      <div className="flex items-center h-12">
+        <Link className="px-4  text-blue-100" to="/">
+          Home
+        </Link>{" "}
+        <Link className="my-auto" to="/mods">
+          Mods
+        </Link>{" "}
         <Link to="/users">Users</Link>
         {isLoading ? (
           <p>Loading...</p>

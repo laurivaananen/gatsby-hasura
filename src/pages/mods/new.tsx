@@ -4,6 +4,8 @@ import Layout from "../../components/layout"
 import { Formik, Form, Field, useField } from "formik"
 import * as Yup from "yup"
 import { gql, useLazyQuery, useMutation } from "@apollo/client"
+import { RouteComponentProps } from "@reach/router"
+import { ALL_MODS } from "./index"
 
 const INSERT_MOD = gql`
   mutation MyMutation($title: String, $description: String) {
@@ -44,10 +46,12 @@ const MyTextInput = ({ label, name }) => {
   )
 }
 
-const AccountPage = () => {
+const ModPage: React.FC<RouteComponentProps> = () => {
   const { user, isLoading, getAccessTokenSilently } = useAuth0()
 
-  const [insertMod, { data, loading }] = useMutation(INSERT_MOD)
+  const [insertMod, { data, loading }] = useMutation(INSERT_MOD, {
+    refetchQueries: [{ query: ALL_MODS }],
+  })
 
   const submitForm = async values => {
     const token = await getAccessTokenSilently({
@@ -59,7 +63,7 @@ const AccountPage = () => {
     })
   }
   return (
-    <Layout>
+    <>
       <h1>Create new mod</h1>
       <Formik
         initialValues={{
@@ -83,8 +87,8 @@ const AccountPage = () => {
           </Form>
         )}
       </Formik>
-    </Layout>
+    </>
   )
 }
 
-export default withAuthenticationRequired(AccountPage)
+export default withAuthenticationRequired(ModPage)

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
-import { gql, useLazyQuery, useMutation } from "@apollo/client"
+import { gql, useLazyQuery, useQuery, useMutation } from "@apollo/client"
 
 const FETCH_CURRENT_USER = gql`
   query FetchCurrentUser($auth0_id: String) {
@@ -28,10 +28,9 @@ const UPDATE_USER_USERNAME = gql`
 
 const Account: React.FC<any> = () => {
   const { user, isLoading, getAccessTokenSilently } = useAuth0()
-  const [fetchUser, { data, loading, error }] = useLazyQuery(
-    FETCH_CURRENT_USER,
-    { onCompleted: data => setUsername(data.user[0].username) }
-  )
+  const { data, loading, error } = useQuery(FETCH_CURRENT_USER, {
+    onCompleted: data => setUsername(data.user[0].username),
+  })
   const [username, setUsername] = useState("")
   const [JWT, setJWT] = useState("")
   const [
@@ -39,22 +38,22 @@ const Account: React.FC<any> = () => {
     { data: updatedUser, loading: updatingUser },
   ] = useMutation(UPDATE_USER_USERNAME)
 
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const token = await getAccessTokenSilently({
-          audience: "https://moved-ferret-33.hasura.app/v1/graphql",
-        })
-        setJWT(token)
-        fetchUser({
-          context: { headers: { authorization: `Bearer ${token}` } },
-          variables: { auth0_id: user.sub },
-        })
-      } catch (e) {
-        console.error(e)
-      }
-    })()
-  }, [getAccessTokenSilently])
+  // useEffect(() => {
+  //   ;(async () => {
+  //     try {
+  //       const token = await getAccessTokenSilently({
+  //         audience: "https://moved-ferret-33.hasura.app/v1/graphql",
+  //       })
+  //       setJWT(token)
+  //       fetchUser({
+  //         context: { headers: { authorization: `Bearer ${token}` } },
+  //         variables: { auth0_id: user.sub },
+  //       })
+  //     } catch (e) {
+  //       console.error(e)
+  //     }
+  //   })()
+  // }, [getAccessTokenSilently])
 
   const handleChange = event => {
     event.preventDefault()
@@ -63,7 +62,6 @@ const Account: React.FC<any> = () => {
   const updateUsername = event => {
     event.preventDefault()
     updateUser({
-      context: { headers: { authorization: `Bearer ${JWT}` } },
       variables: { username: username, auth0_id: user.sub },
     })
   }
@@ -85,7 +83,7 @@ const Account: React.FC<any> = () => {
         Update Username
       </button>
       {error ? (
-        <p>Error!</p>
+        <p>Error! {error.message}</p>
       ) : loading ? (
         <p>Loading..</p>
       ) : (
