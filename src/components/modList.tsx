@@ -1,6 +1,6 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect } from "react"
 import { Link } from "gatsby"
-import { gql, useQuery } from "@apollo/client"
+import { gql, useQuery, useLazyQuery } from "@apollo/client"
 import { WireframeContext } from "../utils/contextWrapper"
 
 interface IMod {
@@ -68,7 +68,6 @@ const ModItem: React.FC<{ mod: IMod }> = ({ mod }) => {
 }
 
 const GhostModItem: React.FC<{ id: number }> = ({ id }) => {
-  console.log(id)
   return (
     <li className="rounded bg-gray-200 mt-4 p-px" key={id}>
       <div className="p-6 flex items-baseline">
@@ -99,9 +98,13 @@ const GhostModItem: React.FC<{ id: number }> = ({ id }) => {
 }
 
 const ModList: React.FC<any> = () => {
-  const { data, loading, error } = useQuery(ALL_MODS)
+  const [fetchAllMods, { data, loading, error }] = useLazyQuery(ALL_MODS)
   const client = useContext(WireframeContext)
-  console.log(client)
+  useEffect(() => {
+    if (client.clientReady) {
+      fetchAllMods()
+    }
+  }, [client.clientReady])
   return (
     <>
       <Link
@@ -110,10 +113,13 @@ const ModList: React.FC<any> = () => {
       >
         Create a new Mod
       </Link>
+      <p>{loading && "Loading"}</p>
       <ul>
-        {!client.clientReady || loading
-          ? Array.from(Array(10).keys()).map(id => <GhostModItem id={id} />)
-          : data.mod.map((mod: IMod) => <ModItem mod={mod} />)}
+        {!data
+          ? Array.from(Array(10).keys()).map(id => (
+              <GhostModItem key={id} id={id} />
+            ))
+          : data.mod.map((mod: IMod) => <ModItem key={mod.id} mod={mod} />)}
       </ul>
     </>
   )

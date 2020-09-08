@@ -25,7 +25,13 @@ const ApolloWrapper: React.FC<{
       wireframe.setClientReady(true)
     }
     if (user) {
+      console.log("USER FOUND! GETTING ACCESS TOKEN")
       getAccessToken()
+    } else if (isLoading) {
+      console.log("LOADING FOR USER!")
+    } else {
+      console.log("NO USER :-(")
+      wireframe.setClientReady(true)
     }
   }, [getAccessTokenSilently])
 
