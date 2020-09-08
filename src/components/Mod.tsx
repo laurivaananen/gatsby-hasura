@@ -105,11 +105,7 @@ const Mod: React.FC<{ mod: IMod }> = ({ mod }) => {
 
   const submitUpvoteMod = async event => {
     event.preventDefault()
-    const token = await getAccessTokenSilently({
-      audience: "https://moved-ferret-33.hasura.app/v1/graphql",
-    })
     upvoteMod({
-      context: { headers: { authorization: `Bearer ${token}` } },
       variables: { mod_id: mod.id },
     })
     updateQuery(previousResult => {
@@ -135,11 +131,7 @@ const Mod: React.FC<{ mod: IMod }> = ({ mod }) => {
 
   const submitDownvoteMod = async event => {
     event.preventDefault()
-    const token = await getAccessTokenSilently({
-      audience: "https://moved-ferret-33.hasura.app/v1/graphql",
-    })
     downVoteMod({
-      context: { headers: { authorization: `Bearer ${token}` } },
       variables: { mod_id: mod.id },
     })
     updateQuery(previousResult => {
@@ -189,11 +181,7 @@ const Mod: React.FC<{ mod: IMod }> = ({ mod }) => {
   useEffect(() => {
     ;(async () => {
       try {
-        const token = await getAccessTokenSilently({
-          audience: "https://moved-ferret-33.hasura.app/v1/graphql",
-        })
         checkUserHasUpvoted({
-          context: { headers: { Authorization: `Bearer ${token}` } },
           variables: { id: mod.id },
         })
       } catch (e) {
