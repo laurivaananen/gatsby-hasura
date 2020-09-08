@@ -26,6 +26,29 @@ const UPDATE_USER_USERNAME = gql`
   }
 `
 
+const ALL_MODS = gql`
+  query MyQuery {
+    mod {
+      updated_at
+      title
+      description
+      id
+      mod_votes(where: { user: { id: { _is_null: false } } }) {
+        id
+      }
+      mod_votes_aggregate {
+        aggregate {
+          count
+        }
+      }
+      user {
+        username
+      }
+      created_at
+    }
+  }
+`
+
 const Account: React.FC<any> = () => {
   const { user, isLoading, getAccessTokenSilently } = useAuth0()
   const { data, loading, error } = useQuery(FETCH_CURRENT_USER, {

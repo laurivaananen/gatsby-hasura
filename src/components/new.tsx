@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react"
+import React from "react"
 import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react"
-import Layout from "../../components/layout"
-import { Formik, Form, Field, useField } from "formik"
+import { Formik, Form, useField } from "formik"
 import * as Yup from "yup"
-import { gql, useLazyQuery, useMutation } from "@apollo/client"
+import { gql, useMutation } from "@apollo/client"
 import { RouteComponentProps } from "@reach/router"
-import { ALL_MODS } from "./index"
+import { ALL_MODS } from "./modList"
 
 const INSERT_MOD = gql`
   mutation MyMutation($title: String, $description: String) {
@@ -47,18 +46,18 @@ const MyTextInput = ({ label, name }) => {
 }
 
 const ModPage: React.FC<RouteComponentProps> = () => {
-  const { user, isLoading, getAccessTokenSilently } = useAuth0()
+  // const { user, isLoading, getAccessTokenSilently } = useAuth0()
 
   const [insertMod, { data, loading }] = useMutation(INSERT_MOD, {
     refetchQueries: [{ query: ALL_MODS }],
   })
 
   const submitForm = async values => {
-    const token = await getAccessTokenSilently({
-      audience: "https://moved-ferret-33.hasura.app/v1/graphql",
-    })
+    // const token = await getAccessTokenSilently({
+    //   audience: "https://moved-ferret-33.hasura.app/v1/graphql",
+    // })
     insertMod({
-      context: { headers: { authorization: `Bearer ${token}` } },
+      // context: { headers: { authorization: `Bearer ${token}` } },
       variables: { title: values.title, description: values.description },
     })
   }
@@ -91,4 +90,4 @@ const ModPage: React.FC<RouteComponentProps> = () => {
   )
 }
 
-export default withAuthenticationRequired(ModPage)
+export default ModPage

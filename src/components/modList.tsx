@@ -1,13 +1,8 @@
 import React from "react"
-import { PageProps, Link } from "gatsby"
-import Layout from "../../components/layout"
-import ClientMod from "../../components/clientMod"
-import { Router } from "@reach/router"
+import { Link } from "gatsby"
 import { gql, useQuery } from "@apollo/client"
-import NewModPage from "./new"
-import { RouteComponentProps } from "@reach/router"
 
-export interface IMod {
+interface IMod {
   id: string
   title: string
   description: string
@@ -18,11 +13,11 @@ export interface IMod {
   user?: IUser
 }
 
-export interface IUser {
+interface IUser {
   username: string
 }
 
-export interface IModVotes {
+interface IModVotes {
   aggregate: { count: number }
 }
 
@@ -49,8 +44,7 @@ export const ALL_MODS = gql`
   }
 `
 
-const StaticMods: React.FC<RouteComponentProps> = () => {
-  console.log("RENDERING ALL MOD PAGE")
+const ModList: React.FC<any> = () => {
   const { data, loading, error } = useQuery(ALL_MODS)
   return (
     <div>
@@ -96,18 +90,4 @@ const StaticMods: React.FC<RouteComponentProps> = () => {
   )
 }
 
-const Mods = () => {
-  return (
-    <>
-      <Layout>
-        <Router basepath="/mods">
-          <StaticMods path="/" />
-          <ClientMod path="/:modId" />
-          <NewModPage path="/new" />
-        </Router>
-      </Layout>
-    </>
-  )
-}
-
-export default Mods
+export default ModList
