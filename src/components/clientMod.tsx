@@ -1,19 +1,32 @@
-import React from "react"
+import React, { useContext, useEffect } from "react"
 import { RouteComponentProps } from "@reach/router"
-import { gql, useQuery } from "@apollo/client"
+import { gql, useLazyQuery } from "@apollo/client"
 import Mod from "./Mod"
+import { WireframeContext } from "../utils/contextWrapper"
 
-export const FETCH_MOD_BY_ID = gql`
-  query MyQuery($id: uuid!) {
-    mod_by_pk(id: $id) {
-      created_at
-      description
-      id
+export const ONE_MOD_WITH_VOTES = gql`
+  query MyQuery($user_sub: String!, $mod_id: uuid!) {
+    mod(where: { id: { _eq: $mod_id } }) {
       title
+      mod_votes_aggregate {
+        aggregate {
+          count
+        }
+      }
+      has_voted: mod_votes_aggregate(
+        where: { user: { auth0_id: { _in: [$user_sub] } } }
+      ) {
+        aggregate {
+          count
+        }
+      }
       updated_at
       user {
         username
       }
+      created_at
+      description
+      id
     }
   }
 `
@@ -23,21 +36,24 @@ interface ClientModProps extends RouteComponentProps {
 }
 
 const ClientMod: React.FC<ClientModProps> = props => {
-  const { data, error, loading } = useQuery(FETCH_MOD_BY_ID, {
-    variables: { id: props.modId },
-  })
+  const [fetchOneMod, { data, error, loading }] = useLazyQuery(
+    ONE_MOD_WITH_VOTES
+  )
+
+  const wireframe = useContext(WireframeContext)
+
+  useEffect(() => {
+    if (wireframe.clientReady) {
+      fetchOneMod({
+        variables: {
+          user_sub: wireframe.userSub,
+          mod_id: props.modId,
+        },
+      })
+    }
+  }, [wireframe.clientReady])
   console.log(data)
   console.log("data")
-  return (
-    <>
-      {error ? (
-        <p>Error.. {error.message}</p>
-      ) : loading ? (
-        <p>Loading..</p>
-      ) : (
-        <Mod mod={data.mod_by_pk} />
-      )}
-    </>
-  )
+  return <>{!data ? <p>Loading..</p> : <Mod mod={data.mod[0]} />}</>
 }
 export default ClientMod

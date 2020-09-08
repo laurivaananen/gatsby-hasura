@@ -3,44 +3,52 @@ import { Link } from "gatsby"
 import { gql, useQuery, useLazyQuery } from "@apollo/client"
 import { WireframeContext } from "../utils/contextWrapper"
 
-interface IMod {
+export interface IMod {
   id: string
   title: string
   description: string
   created_at: string
   updated_at: string
   mod_votes_aggregate: IModVotes
-  mod_votes: string[]
+  has_voted?: IHasVoted
   user?: IUser
 }
 
-interface IUser {
+export interface IUser {
   username: string
 }
 
-interface IModVotes {
+export interface IModVotes {
   aggregate: { count: number }
 }
 
-export const ALL_MODS = gql`
-  query MyQuery {
+export interface IHasVoted {
+  aggregate: { count: number }
+}
+
+export const ALL_MODS_WITH_VOTES = gql`
+  query MyQuery($user_sub: String!) {
     mod {
-      updated_at
       title
-      description
-      id
-      mod_votes(where: { user: { id: { _is_null: false } } }) {
-        id
-      }
       mod_votes_aggregate {
         aggregate {
           count
         }
       }
+      has_voted: mod_votes_aggregate(
+        where: { user: { auth0_id: { _in: [$user_sub] } } }
+      ) {
+        aggregate {
+          count
+        }
+      }
+      updated_at
       user {
         username
       }
       created_at
+      description
+      id
     }
   }
 `
@@ -52,7 +60,9 @@ const ModItem: React.FC<{ mod: IMod }> = ({ mod }) => {
         <div className="p-6 flex items-center">
           <div
             className={`mr-6 text-xl font-bold ${
-              mod.mod_votes.length > 0 ? "text-green-400 " : "text-gray-400 "
+              mod?.has_voted.aggregate.count > 0
+                ? "text-green-400 "
+                : "text-gray-400 "
             }`}
           >
             <p>{mod.mod_votes_aggregate.aggregate.count}</p>
@@ -98,13 +108,19 @@ const GhostModItem: React.FC<{ id: number }> = ({ id }) => {
 }
 
 const ModList: React.FC<any> = () => {
-  const [fetchAllMods, { data, loading, error }] = useLazyQuery(ALL_MODS)
-  const client = useContext(WireframeContext)
+  const [fetchAllMods, { data, loading, error }] = useLazyQuery(
+    ALL_MODS_WITH_VOTES
+  )
+  const wireframe = useContext(WireframeContext)
   useEffect(() => {
-    if (client.clientReady) {
-      fetchAllMods()
+    if (wireframe.clientReady) {
+      fetchAllMods({
+        variables: {
+          user_sub: wireframe.userSub,
+        },
+      })
     }
-  }, [client.clientReady])
+  }, [wireframe.clientReady])
   return (
     <>
       <Link
@@ -113,7 +129,7 @@ const ModList: React.FC<any> = () => {
       >
         Create a new Mod
       </Link>
-      <p>{loading && "Loading"}</p>
+      <p>{error?.message}</p>
       <ul>
         {!data
           ? Array.from(Array(10).keys()).map(id => (

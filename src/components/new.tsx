@@ -1,10 +1,8 @@
 import React from "react"
-import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react"
 import { Formik, Form, useField } from "formik"
 import * as Yup from "yup"
 import { gql, useMutation } from "@apollo/client"
 import { RouteComponentProps } from "@reach/router"
-import { ALL_MODS } from "./modList"
 
 const INSERT_MOD = gql`
   mutation MyMutation($title: String, $description: String) {
@@ -48,9 +46,7 @@ const MyTextInput = ({ label, name }) => {
 const ModPage: React.FC<RouteComponentProps> = () => {
   // const { user, isLoading, getAccessTokenSilently } = useAuth0()
 
-  const [insertMod, { data, loading }] = useMutation(INSERT_MOD, {
-    refetchQueries: [{ query: ALL_MODS }],
-  })
+  const [insertMod, { data, loading }] = useMutation(INSERT_MOD)
 
   const submitForm = async values => {
     // const token = await getAccessTokenSilently({

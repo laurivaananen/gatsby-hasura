@@ -26,6 +26,8 @@ const ApolloWrapper: React.FC<{
     }
     if (user) {
       console.log("USER FOUND! GETTING ACCESS TOKEN")
+      console.log(user)
+      wireframe.setUserSub(user.sub)
       getAccessToken()
     } else if (isLoading) {
       console.log("LOADING FOR USER!")
