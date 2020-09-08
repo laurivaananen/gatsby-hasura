@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
 import {
   ApolloClient,
@@ -7,12 +7,14 @@ import {
   ApolloProvider,
 } from "@apollo/client"
 import fetch from "cross-fetch"
+import { WireframeContext } from "./contextWrapper"
 
 const ApolloWrapper: React.FC<{
   children: React.ReactNode | React.ReactNode[] | null
 }> = ({ children }) => {
   const [token, setToken] = useState(undefined)
   const { user, getAccessTokenSilently, isLoading } = useAuth0()
+  const wireframe = useContext(WireframeContext)
 
   useEffect(() => {
     const getAccessToken = async () => {
@@ -20,6 +22,7 @@ const ApolloWrapper: React.FC<{
         audience: "https://moved-ferret-33.hasura.app/v1/graphql",
       })
       setToken(accessToken)
+      wireframe.setClientReady(true)
     }
     if (user) {
       getAccessToken()
@@ -35,15 +38,7 @@ const ApolloWrapper: React.FC<{
     }),
   })
 
-  return (
-    <>
-      {isLoading ? (
-        <p>Loading..</p>
-      ) : (
-        <ApolloProvider client={client}>{children}</ApolloProvider>
-      )}
-    </>
-  )
+  return <ApolloProvider client={client}>{children}</ApolloProvider>
 }
 
 export default ApolloWrapper

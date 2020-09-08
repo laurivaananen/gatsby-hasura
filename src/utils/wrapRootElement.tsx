@@ -2,6 +2,7 @@ import React from "react"
 import { Auth0Provider } from "@auth0/auth0-react"
 import { navigate } from "gatsby"
 import ApolloWrapper from "./apolloWrapper"
+import { WireframeProvider } from "./contextWrapper"
 
 const onRedirectCallback = appState => {
   navigate(appState?.returnTo || "/", { replace: true })
@@ -17,7 +18,9 @@ export const wrapRootElement = ({ element }) => {
       scope="read:current_user update:current_user_metadata"
       onRedirectCallback={onRedirectCallback}
     >
-      <ApolloWrapper>{element}</ApolloWrapper>
+      <WireframeProvider>
+        <ApolloWrapper>{element}</ApolloWrapper>
+      </WireframeProvider>
     </Auth0Provider>
   )
 }
