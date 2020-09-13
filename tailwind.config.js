@@ -3,6 +3,16 @@ module.exports = {
   theme: {
     extend: {},
   },
-  variants: {},
+  variants: {
+    backgroundColor: [
+      "responsive",
+      "hover",
+      "focus",
+      "active",
+      "group-hover",
+      "disabled",
+    ],
+    cursor: ["responsive", "hover", "focus", "disabled"],
+  },
   plugins: [],
 }

@@ -3,6 +3,7 @@ import { Formik, Form, useField } from "formik"
 import * as Yup from "yup"
 import { gql, useMutation } from "@apollo/client"
 import { RouteComponentProps } from "@reach/router"
+import { withAuthenticationRequired } from "@auth0/auth0-react"
 
 const INSERT_MOD = gql`
   mutation MyMutation($title: String, $description: String) {
@@ -44,18 +45,14 @@ const MyTextInput = ({ label, name }) => {
 }
 
 const ModPage: React.FC<RouteComponentProps> = () => {
-  // const { user, isLoading, getAccessTokenSilently } = useAuth0()
-
   const [insertMod, { data, loading }] = useMutation(INSERT_MOD)
 
-  const submitForm = async values => {
-    // const token = await getAccessTokenSilently({
-    //   audience: "https://moved-ferret-33.hasura.app/v1/graphql",
-    // })
-    insertMod({
-      // context: { headers: { authorization: `Bearer ${token}` } },
+  const submitForm = async (values, { resetForm }) => {
+    console.log(values)
+    await insertMod({
       variables: { title: values.title, description: values.description },
     })
+    resetForm()
   }
   return (
     <>
@@ -68,12 +65,13 @@ const ModPage: React.FC<RouteComponentProps> = () => {
         validationSchema={ModSchema}
         onSubmit={submitForm}
       >
-        {({ errors, touched, isSubmitting }) => (
+        {({ isSubmitting }) => (
           <Form>
             <MyTextInput label="Mod Name" name="title" />
             <MyTextInput label="Mod Description" name="description" />
             <button
-              className="px-4 py-2 mt-4 rounded bg-blue-600 text-blue-100"
+              disabled={isSubmitting}
+              className="px-4 py-2 mt-4 rounded bg-blue-600 text-blue-100 disabled:bg-gray-600"
               type="submit"
             >
               Submit
@@ -86,4 +84,4 @@ const ModPage: React.FC<RouteComponentProps> = () => {
   )
 }
 
-export default ModPage
+export default withAuthenticationRequired(ModPage)

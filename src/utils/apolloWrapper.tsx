@@ -5,6 +5,7 @@ import {
   InMemoryCache,
   createHttpLink,
   ApolloProvider,
+  NormalizedCacheObject,
 } from "@apollo/client"
 import fetch from "cross-fetch"
 import { WireframeContext } from "./contextWrapper"
@@ -22,23 +23,41 @@ const ApolloWrapper: React.FC<{
         audience: "https://moved-ferret-33.hasura.app/v1/graphql",
       })
       setToken(accessToken)
+      console.log(accessToken)
+      console.log("accessToken")
       wireframe.setClientReady(true)
     }
     if (user) {
-      console.log("USER FOUND! GETTING ACCESS TOKEN")
-      console.log(user)
       wireframe.setUserSub(user.sub)
       getAccessToken()
     } else if (isLoading) {
-      console.log("LOADING FOR USER!")
     } else {
-      console.log("NO USER :-(")
       wireframe.setClientReady(true)
     }
   }, [getAccessTokenSilently])
 
-  const client = new ApolloClient({
-    cache: new InMemoryCache(),
+  const client: ApolloClient<NormalizedCacheObject> = new ApolloClient({
+    cache: new InMemoryCache({
+      typePolicies: {
+        Query: {
+          fields: {
+            Mods: {
+              keyArgs: ["order_by"],
+              merge(existing = [], incoming: any[], { variables }) {
+                console.log(existing)
+                console.log(incoming)
+                console.log(variables)
+                console.log("WE ARE MERGING")
+                if (variables.offset === 0) {
+                  return incoming
+                }
+                return [...existing, ...incoming]
+              },
+            },
+          },
+        },
+      },
+    }),
     link: createHttpLink({
       uri: "https://moved-ferret-33.hasura.app/v1/graphql",
       headers: token ? { Authorization: `Bearer ${token}` } : {},

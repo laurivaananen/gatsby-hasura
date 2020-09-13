@@ -1,6 +1,11 @@
-import React, { useContext, useEffect } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { Link } from "gatsby"
-import { gql, useQuery, useLazyQuery } from "@apollo/client"
+import {
+  gql,
+  useLazyQuery,
+  WatchQueryFetchPolicy,
+  useApolloClient,
+} from "@apollo/client"
 import { WireframeContext } from "../utils/contextWrapper"
 
 export interface IMod {
@@ -9,8 +14,9 @@ export interface IMod {
   description: string
   created_at: string
   updated_at: string
-  mod_votes_aggregate: IModVotes
-  has_voted?: IHasVoted
+  count: number
+  username: string
+  user_votes: IModVote[]
   user?: IUser
 }
 
@@ -18,40 +24,35 @@ export interface IUser {
   username: string
 }
 
-export interface IModVotes {
-  aggregate: { count: number }
+export interface IModVote {
+  id: string
 }
 
-export interface IHasVoted {
-  aggregate: { count: number }
-}
-
-export const ALL_MODS_WITH_VOTES = gql`
-  query MyQuery($user_sub: String!) {
-    mod {
-      title
-      mod_votes_aggregate {
-        aggregate {
-          count
-        }
-      }
-      has_voted: mod_votes_aggregate(
-        where: { user: { auth0_id: { _in: [$user_sub] } } }
-      ) {
-        aggregate {
-          count
-        }
-      }
-      updated_at
-      user {
-        username
-      }
-      created_at
-      description
+export const ALL_MODS = gql`
+  query ListMods($order_by: [mod_omega_order_by!], $offset: Int, $limit: Int) {
+    Mods(order_by: $order_by, limit: $limit, offset: $offset) {
+      count
       id
+      username
+      user_votes {
+        id
+      }
+      title
+      created_at
+      updated_at
     }
   }
 `
+
+enum FilterOptions {
+  NEW,
+  TOP,
+}
+
+const ModListFilterOptions: { [key in FilterOptions]: object } = {
+  [FilterOptions.NEW]: { created_at: "desc" },
+  [FilterOptions.TOP]: { count: "desc" },
+}
 
 const ModItem: React.FC<{ mod: IMod }> = ({ mod }) => {
   return (
@@ -60,16 +61,14 @@ const ModItem: React.FC<{ mod: IMod }> = ({ mod }) => {
         <div className="p-6 flex items-center">
           <div
             className={`mr-6 text-xl font-bold ${
-              mod?.has_voted.aggregate.count > 0
-                ? "text-green-400 "
-                : "text-gray-400 "
+              mod.user_votes.length > 0 ? "text-green-400 " : "text-gray-400 "
             }`}
           >
-            <p>{mod.mod_votes_aggregate.aggregate.count}</p>
+            <p>{mod.count}</p>
           </div>
           <div>
             <h3 className="text-xl font-bold">{mod.title}</h3>
-            <p className="text-gray-600">{mod.user?.username}</p>
+            <p className="text-gray-600">{mod.username}</p>
           </div>
         </div>
       </Link>
@@ -108,19 +107,57 @@ const GhostModItem: React.FC<{ id: number }> = ({ id }) => {
 }
 
 const ModList: React.FC<any> = () => {
-  const [fetchAllMods, { data, loading, error }] = useLazyQuery(
-    ALL_MODS_WITH_VOTES
+  const LIMIT = 6
+  const [modListFilter, setModListFilter] = useState<FilterOptions>(
+    FilterOptions.NEW
   )
+  const [fetchedMoreCount, setFetchedMoreCount] = useState<number>(0)
+  const [moreToFetch, setMoreToFetch] = useState<boolean>(false)
+  const [fetchAllMods, { data, loading, error, fetchMore }] = useLazyQuery(
+    ALL_MODS,
+    {
+      fetchPolicy: "cache-and-network",
+      onCompleted: data => {
+        console.log(data)
+        console.log("Got some data")
+        if (data.Mods.length < (fetchedMoreCount + 1) * LIMIT) {
+          setMoreToFetch(false)
+        } else {
+          setMoreToFetch(true)
+        }
+        setFetchedMoreCount(fetchedMoreCount + 1)
+      },
+    }
+  )
+
   const wireframe = useContext(WireframeContext)
   useEffect(() => {
     if (wireframe.clientReady) {
       fetchAllMods({
         variables: {
-          user_sub: wireframe.userSub,
+          order_by: ModListFilterOptions[modListFilter],
+          limit: LIMIT,
+          offset: fetchedMoreCount * LIMIT,
         },
       })
     }
-  }, [wireframe.clientReady])
+  }, [wireframe.clientReady, modListFilter])
+
+  const loadMore = () => {
+    fetchMore({
+      variables: {
+        order_by: ModListFilterOptions[modListFilter],
+        limit: LIMIT,
+        offset: fetchedMoreCount * LIMIT,
+      },
+    })
+  }
+
+  const changeFilter = (filter: FilterOptions): void => {
+    setModListFilter(filter)
+    setFetchedMoreCount(0)
+  }
+
   return (
     <>
       <Link
@@ -130,13 +167,39 @@ const ModList: React.FC<any> = () => {
         Create a new Mod
       </Link>
       <p>{error?.message}</p>
+      <div className="p-8">
+        <button
+          disabled={modListFilter === FilterOptions.NEW}
+          onClick={() => changeFilter(FilterOptions.NEW)}
+          className="px-4 py-2 bg-blue-600 text-blue-100 rounded disabled:bg-gray-500 disabled:cursor-not-allowed"
+        >
+          New
+        </button>
+        <button
+          disabled={modListFilter === FilterOptions.TOP}
+          onClick={() => changeFilter(FilterOptions.TOP)}
+          className="px-4 py-2 bg-blue-600 text-blue-100 rounded ml-4 disabled:bg-gray-500 disabled:cursor-not-allowed"
+        >
+          Top
+        </button>
+      </div>
       <ul>
-        {!data
-          ? Array.from(Array(10).keys()).map(id => (
+        {!data || (fetchedMoreCount === 0 && loading)
+          ? Array.from(Array(6).keys()).map(id => (
               <GhostModItem key={id} id={id} />
             ))
-          : data.mod.map((mod: IMod) => <ModItem key={mod.id} mod={mod} />)}
+          : data.Mods.map((mod: IMod) => <ModItem key={mod.id} mod={mod} />)}
       </ul>
+      <div className="pt-8 pb-32">
+        <button
+          onClick={loadMore}
+          className={`px-4 py-2 rounded bg-green-600 text-green-100 ${
+            !moreToFetch && "hidden"
+          }`}
+        >
+          Load more
+        </button>
+      </div>
     </>
   )
 }

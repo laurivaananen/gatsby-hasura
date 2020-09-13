@@ -1,7 +1,8 @@
 import React from "react"
 import { useAuth0 } from "@auth0/auth0-react"
-import { gql, useMutation } from "@apollo/client"
+import { gql, useMutation, useApolloClient } from "@apollo/client"
 import { IMod } from "./modList"
+import { ONE_MOD_WITH_VOTES } from "./clientMod"
 
 const UPVOTE_MOD = gql`
   mutation MyMutation($mod_id: uuid) {
@@ -10,6 +11,9 @@ const UPVOTE_MOD = gql`
       on_conflict: { constraint: mod_votes_pkey, update_columns: updated_at }
     ) {
       id
+      mod {
+        id
+      }
     }
   }
 `
@@ -43,6 +47,9 @@ const DownVoteButton = ({ submitDownvoteMod }) => {
 const Mod: React.FC<{ mod: IMod }> = ({ mod }) => {
   const { user } = useAuth0()
 
+  const apolloClient = useApolloClient()
+  console.log(apolloClient.typeDefs)
+
   const [upvoteMod] = useMutation(UPVOTE_MOD)
 
   const [downVoteMod] = useMutation(DOWNVOTE_MOD)
@@ -51,6 +58,16 @@ const Mod: React.FC<{ mod: IMod }> = ({ mod }) => {
     event.preventDefault()
     upvoteMod({
       variables: { mod_id: mod.id },
+      update: cache => {
+        const existingMod = cache.readQuery({
+          query: ONE_MOD_WITH_VOTES,
+          variables: {
+            mod_id: "b2cfeec3-cf13-49fa-af9a-ac02464555d3",
+            user_sub: "",
+          },
+        })
+        console.log(existingMod)
+      },
     })
   }
 
@@ -58,6 +75,16 @@ const Mod: React.FC<{ mod: IMod }> = ({ mod }) => {
     event.preventDefault()
     downVoteMod({
       variables: { mod_id: mod.id },
+      update: cache => {
+        const existingMod = cache.readQuery({
+          query: ONE_MOD_WITH_VOTES,
+          variables: {
+            mod_id: "b2cfeec3-cf13-49fa-af9a-ac02464555d3",
+            user_sub: "",
+          },
+        })
+        console.log(existingMod)
+      },
     })
   }
 
